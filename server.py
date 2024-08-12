@@ -9,6 +9,8 @@ from flwr_datasets import FederatedDataset
 from torch.utils.data import DataLoader
 
 import utils
+from flwr_monitoring import GenericMonitoringStrategy, default_metrics, create_monitoring_tool, aggregate_fit_metrics, aggregate_evaluate_metrics
+
 
 warnings.filterwarnings("ignore")
 
@@ -94,28 +96,42 @@ def main():
     else:
         model = utils.load_efficientnet(classes=10)
 
-    model_parameters = [val.cpu().numpy() for _, val in model.state_dict().items()]
+    model_parameters = [val.cpu().numpy()
+                        for _, val in model.state_dict().items()]
 
     # Create strategy
-    strategy = fl.server.strategy.FedAvg(
+    base_strategy = fl.server.strategy.FedAvg(
         fraction_fit=1.0,
         fraction_evaluate=1.0,
         min_fit_clients=2,
         min_evaluate_clients=2,
-        min_available_clients=10,
+        min_available_clients=2,
         evaluate_fn=get_evaluate_fn(model, args.toy),
         on_fit_config_fn=fit_config,
         on_evaluate_config_fn=evaluate_config,
         initial_parameters=fl.common.ndarrays_to_parameters(model_parameters),
+        fit_metrics_aggregation_fn=aggregate_fit_metrics,
+        evaluate_metrics_aggregation_fn=aggregate_evaluate_metrics,
     )
 
     # Start Flower server for four rounds of federated learning
-    fl.server.start_server(
+    monitoring_tool_instance = create_monitoring_tool(
+        tool_name="prometheus",
+        metrics=default_metrics,
+        config={"port": 8000, "url": "0.0.0.0"}
+    )
+    
+    # Wrap the base strategy with the monitoring strategy
+    monitoring_strategy = GenericMonitoringStrategy(
+        base_strategy, monitoring_tool_instance
+    )
+    
+    # Start Flower server for four rounds of federated learning
+    fl_server = fl.server.start_server(
         server_address="0.0.0.0:8080",
         config=fl.server.ServerConfig(num_rounds=4),
-        strategy=strategy,
+        strategy=monitoring_strategy,
     )
-
-
+    
 if __name__ == "__main__":
     main()
