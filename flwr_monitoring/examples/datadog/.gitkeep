@@ -1,0 +1,33 @@
+import sys
+import os
+
+# Ensure the root directory is in the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+
+from flwr_monitoring import GenericMonitoringStrategy, default_metrics, create_monitoring_tool
+import flwr as fl
+
+
+def main():
+    # Initialize the base strategy
+    base_strategy = fl.server.strategy.FedAvg()
+
+    # Create the monitoring tool instance for Prometheus
+    monitoring_tool_instance = create_monitoring_tool(
+        tool_name="prometheus",
+        metrics=default_metrics,
+        config={"port": 8000, "url": "0.0.0.0"}
+    )
+
+    # Wrap the base strategy with the monitoring strategy
+    monitoring_strategy = GenericMonitoringStrategy(base_strategy, monitoring_tool_instance)
+
+    # Start the Flower server with the custom strategy
+    fl.server.start_server(
+        server_address="0.0.0.0:8080",
+        config=fl.server.ServerConfig(num_rounds=100),
+        strategy=monitoring_strategy,
+    )
+
+if __name__ == "__main__":
+    main()
