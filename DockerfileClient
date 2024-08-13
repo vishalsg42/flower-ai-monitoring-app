@@ -15,11 +15,5 @@ RUN pip install --upgrade pip && pip install -r /app/requirements.txt
 # Copy the rest of the application code
 COPY . /app
 
-# Expose the port the Prometheus monitoring tool will use
-EXPOSE 8000
-
-# Expose the port the Flower server will use
-EXPOSE 8080
-
 # Define the command to run the server
-CMD ["python", "server.py"]
+CMD ["python", "client.py"]
