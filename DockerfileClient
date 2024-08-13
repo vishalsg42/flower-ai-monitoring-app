@@ -18,4 +18,9 @@ COPY . /app
 EXPOSE 8080
 
 # Define the command to run the server
-CMD ["python", "client.py"]
+# CMD ["python", "client.py"]
+# Define the entrypoint to run the client script with arguments
+ENTRYPOINT ["python", "client.py"]
+
+# Default command (optional, not needed in your case)
+CMD ["--client-id=0"]
