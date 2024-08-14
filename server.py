@@ -113,20 +113,22 @@ def main():
         evaluate_metrics_aggregation_fn=aggregate_evaluate_metrics,
     )
 
+    server_ip = args.server_ip
+    server_port = args.server_port
+    prometheus_ip = args.prometheus_ip
+    prometheus_port = args.prometheus_port
+
     # Start Flower server for four rounds of federated learning
     monitoring_tool_instance = create_monitoring_tool(
         tool_name="prometheus",
         metrics=default_metrics,
-        config={"port": 8000, "url": "0.0.0.0"}
+        config={"port": prometheus_port, "url": prometheus_ip}
     )
 
     # Wrap the base strategy with the monitoring strategy
     monitoring_strategy = GenericMonitoringStrategy(
         base_strategy, monitoring_tool_instance
     )
-
-    server_ip = args.server_ip
-    server_port = args.server_port
 
     # Start Flower server for four rounds of federated learning
     fl_server = fl.server.start_server(
