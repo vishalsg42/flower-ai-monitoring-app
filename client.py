@@ -17,17 +17,17 @@ warnings.filterwarnings("ignore")
 class CifarClient(fl.client.NumPyClient):
     def __init__(
         self,
-        trainset: datasets.Dataset,
-        testset: datasets.Dataset,
-        device: torch.device,
+        data_loader: DataClientLoader,
         model_loader: ModelLoader,
+        device: torch.device,
         validation_split: int = 0.1,
     ):
         self.device = device
-        self.trainset = trainset
-        self.testset = testset
+        self.data_loader = data_loader
+        self.model_loader = model_loader
         self.validation_split = validation_split
-        self.model = model_loader.load_model()
+        self.model = self.model_loader.load_model()
+        self.trainset, self.testset = self.data_loader.load_data()
 
     def set_parameters(self, parameters):
         """Loads a alexnet or efficientnet model and replaces it parameters with the
@@ -47,21 +47,25 @@ class CifarClient(fl.client.NumPyClient):
         # Get hyperparameters for this round
         batch_size: int = config["batch_size"]
         epochs: int = config["local_epochs"]
+        
+        train_loader, val_loader = self.data_loader.get_data_loaders(
+            self.trainset, self.validation_split, batch_size
+        )
 
-        train_valid = self.trainset.train_test_split(
-            self.validation_split, seed=42)
-        trainset = train_valid["train"]
-        valset = train_valid["test"]
+        # train_valid = self.trainset.train_test_split(
+        #     self.validation_split, seed=42)
+        # trainset = train_valid["train"]
+        # valset = train_valid["test"]
 
-        train_loader = DataLoader(
-            trainset, batch_size=batch_size, shuffle=True)
-        val_loader = DataLoader(valset, batch_size=batch_size)
+        # train_loader = DataLoader(
+        #     trainset, batch_size=batch_size, shuffle=True)
+        # val_loader = DataLoader(valset, batch_size=batch_size)
 
         results = utils.train(self.model, train_loader,
                               val_loader, epochs, self.device)
 
         parameters_prime = utils.get_model_params(self.model)
-        num_examples_train = len(trainset)
+        num_examples_train = len(self.trainset)
 
         return parameters_prime, num_examples_train, results
 
@@ -76,9 +80,10 @@ class CifarClient(fl.client.NumPyClient):
         steps: int = config["val_steps"]
 
         # Evaluate global model parameters on the local test data and return results
-        testloader = DataLoader(self.testset, batch_size=16)
+        # testloader = DataLoader(self.testset, batch_size=16)
+        test_loader = self.data_loader.get_test_loader(self.testset)
 
-        loss, accuracy = utils.test(self.model, testloader, steps, self.device)
+        loss, accuracy = utils.test(self.model, test_loader, steps, self.device)
         return float(loss), len(self.testset), {"accuracy": float(accuracy)}
 
 
@@ -122,15 +127,17 @@ def main() -> None:
         "cuda:0" if torch.cuda.is_available() and args.use_cuda else "cpu"
     )
 
-    data_loader = DataClientLoader()
-    trainset, testset = data_loader.load_data(args.client_id, toy=args.toy)
+    # data_loader = DataClientLoader()
+    # print("ARGS", args.toy)
+    # print("ARGS", args.client_id)
+    data_loader = DataClientLoader(client_id=args.client_id, toy=args.toy)
     print(f"Client {args.client_id} loaded data partition")
 
     # Load model using the ModelLoader
     model_loader = ModelLoader(model_str=args.model)
 
     # Start Flower client
-    client = CifarClient(trainset, testset, device, model_loader).to_client()
+    client = CifarClient(data_loader, model_loader, device).to_client()
     print(f"Client {args.client_id} started")
     fl.client.start_client(server_address="3.95.62.233:8080", client=client)
 

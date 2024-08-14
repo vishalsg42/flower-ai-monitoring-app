@@ -1,6 +1,7 @@
 import utils
 import torch.nn as nn
 
+
 class ModelLoader:
     def __init__(self, model_str: str = "efficientnet", num_classes: int = 10):
         self.model_str = model_str
