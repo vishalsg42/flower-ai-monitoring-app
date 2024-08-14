@@ -2,7 +2,8 @@
 
 # Function to fetch the EC2 instance's IP address
 fetch_ec2_ip() {
-  curl -s http://169.254.169.254/latest/meta-data/local-ipv4
+  TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+  curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/local-ipv4
 }
 
 # Default values
