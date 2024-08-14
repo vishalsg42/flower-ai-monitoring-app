@@ -69,7 +69,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-echo "Starting server with IP: $SERVER_IP on port: $SERVER_PORT, Prometheus IP: $PROMETHEUS_IP, and Prometheus port: $PROMETHEUS_PORT"
+echo "Starting server with IP: $SERVER_IP on port: $SERVER_PORT, Prometheus IP: $PROMETHEUS_IP  and Prometheus port: $PROMETHEUS_PORT"
 
 # Run the Docker container for the server
 docker run -e SERVER_IP="$SERVER_IP" -e SERVER_PORT="$SERVER_PORT" -e PROMETHEUS_IP="$PROMETHEUS_IP" -e PROMETHEUS_PORT="$PROMETHEUS_PORT" -p "$SERVER_PORT:$SERVER_PORT" flower-ai-monitoring-app --server-ip "$SERVER_IP" --server-port "$SERVER_PORT" --prometheus-ip "$PROMETHEUS_IP" --prometheus-port "$PROMETHEUS_PORT"

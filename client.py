@@ -99,7 +99,7 @@ def main() -> None:
         Useful for testing purposes. Default: False",
     )
     parser.add_argument(
-        "--use_cuda",
+        "--use-cuda",
         type=bool,
         default=False,
         required=False,
@@ -154,7 +154,7 @@ def main() -> None:
     # Start Flower client
     client = CifarClient(data_loader, model_loader, device).to_client()
     fl.client.start_client(
-        server_address=f"${server_ip}:${server_port}", client=client)
+        server_address=f"{server_ip}:{server_port}", client=client)
 
 
 if __name__ == "__main__":
