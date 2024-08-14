@@ -84,9 +84,9 @@ def main():
     parser.add_argument('--server-port', type=int,
                         default=os.getenv('SERVER_PORT', 8080), help="Server port")
     parser.add_argument('--prometheus-ip', type=str,
-                        default=os.getenv('SERVER_IP', '0.0.0.0'), help="Server IP address")
+                        default=os.getenv('PROMETHEUS_IP', '0.0.0.0'), help="Server IP address")
     parser.add_argument('--prometheus-port', type=int,
-                        default=os.getenv('SERVER_PORT', 8000), help="Server port")
+                        default=os.getenv('PROMETHEUS_PORT', 8000), help="Server port")
 
     args = parser.parse_args()
 
