@@ -2,6 +2,7 @@ import argparse
 import warnings
 from collections import OrderedDict
 from typing import Dict, Optional, Tuple
+import os
 
 import flwr as fl
 import torch
@@ -88,6 +89,8 @@ def main():
         help="Use either Efficientnet or Alexnet models. \
              If you want to achieve differential privacy, please use the Alexnet model",
     )
+    parser.add_argument('--server-ip', type=str, default=os.getenv('SERVER_IP', '127.0.0.1'), help="Server IP address")
+    parser.add_argument('--server-port', type=int, default=os.getenv('SERVER_PORT', 8080), help="Server port")
 
     args = parser.parse_args()
 
@@ -126,10 +129,12 @@ def main():
         base_strategy, monitoring_tool_instance
     )
     
+    server_ip = args.server_ip
+    server_port = args.server_port
+    
     # Start Flower server for four rounds of federated learning
     fl_server = fl.server.start_server(
-        server_address="3.95.62.233:8080",
-        server_address="0.0.0.0:8080",
+        server_address=f"{server_ip}:{server_port}",
         config=fl.server.ServerConfig(num_rounds=4),
         strategy=monitoring_strategy,
     )

@@ -2,7 +2,8 @@ import argparse
 import warnings
 from collections import OrderedDict
 
-import datasets
+# import datasets
+import os
 import flwr as fl
 import torch
 from torch.utils.data import DataLoader
@@ -47,19 +48,10 @@ class CifarClient(fl.client.NumPyClient):
         # Get hyperparameters for this round
         batch_size: int = config["batch_size"]
         epochs: int = config["local_epochs"]
-        
+
         train_loader, val_loader = self.data_loader.get_data_loaders(
             self.trainset, self.validation_split, batch_size
         )
-
-        # train_valid = self.trainset.train_test_split(
-        #     self.validation_split, seed=42)
-        # trainset = train_valid["train"]
-        # valset = train_valid["test"]
-
-        # train_loader = DataLoader(
-        #     trainset, batch_size=batch_size, shuffle=True)
-        # val_loader = DataLoader(valset, batch_size=batch_size)
 
         results = utils.train(self.model, train_loader,
                               val_loader, epochs, self.device)
@@ -83,7 +75,8 @@ class CifarClient(fl.client.NumPyClient):
         # testloader = DataLoader(self.testset, batch_size=16)
         test_loader = self.data_loader.get_test_loader(self.testset)
 
-        loss, accuracy = utils.test(self.model, test_loader, steps, self.device)
+        loss, accuracy = utils.test(
+            self.model, test_loader, steps, self.device)
         return float(loss), len(self.testset), {"accuracy": float(accuracy)}
 
 
@@ -120,6 +113,29 @@ def main() -> None:
         help="Use either Efficientnet or Alexnet models. \
              If you want to achieve differential privacy, please use the Alexnet model",
     )
+    parser.add_argument(
+        '--server-ip', type=str,
+        default=os.getenv('SERVER_IP', '0.0.0.0'),
+        help="Server IP address"
+    )
+    parser.add_argument(
+        '--server-port',
+        type=str,
+        default=os.getenv('SERVER_PORT', '8080'),
+        help="Server port"
+    )
+    parser.add_argument(
+        '--prometheus-ip',
+        type=str,
+        default=os.getenv('PROMETHEUS_IP', '0.0.0.0'),
+        help="Prometheus IP address"
+    )
+    parser.add_argument(
+        '--prometheus-port',
+        type=str,
+        default=os.getenv('PROMETHEUS_PORT', '8000'),
+        help="Prometheus IP port"
+    )
 
     args = parser.parse_args()
 
@@ -127,19 +143,18 @@ def main() -> None:
         "cuda:0" if torch.cuda.is_available() and args.use_cuda else "cpu"
     )
 
-    # data_loader = DataClientLoader()
-    # print("ARGS", args.toy)
-    # print("ARGS", args.client_id)
     data_loader = DataClientLoader(client_id=args.client_id, toy=args.toy)
     print(f"Client {args.client_id} loaded data partition")
 
     # Load model using the ModelLoader
     model_loader = ModelLoader(model_str=args.model)
 
+    server_ip = args.server_ip
+    server_port = args.server_port
     # Start Flower client
     client = CifarClient(data_loader, model_loader, device).to_client()
-    print(f"Client {args.client_id} started")
-    fl.client.start_client(server_address="3.95.62.233:8080", client=client)
+    fl.client.start_client(
+        server_address=f"${server_ip}:${server_port}", client=client)
 
 
 if __name__ == "__main__":
