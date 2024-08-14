@@ -20,4 +20,5 @@ RUN pip install /app/flwr_monitoring
 COPY . /app
 
 # Define the command to run the server
-CMD ["python", "server.py"]
+# CMD ["python", "server.py"]
+ENTRYPOINT ["python", "server.py"]

@@ -5,33 +5,48 @@ fetch_ec2_ip() {
   curl -s http://169.254.169.254/latest/meta-data/local-ipv4
 }
 
-# Parse arguments
-while getopts ":i:p:m:" opt; do
-  case ${opt} in
-    i )
-      SERVER_IP=$OPTARG
+# Default values
+# Initialize variables with default values
+SERVER_IP=""
+SERVER_PORT=8080
+PROMETHEUS_IP="localhost"
+PROMETHEUS_PORT=9090
+IMAGE_NAME="flower-ai-monitoring-app"
+DOCKERFILE_PATH="."
+
+# Parse command-line arguments
+while [[ $# -gt 0 ]]; do
+  key="$1"
+
+  case $key in
+    --server-ip)
+      SERVER_IP="$2"
+      shift # past argument
+      shift # past value
       ;;
-    p )
-      SERVER_PORT=$OPTARG
+    --server-port)
+      SERVER_PORT="$2"
+      shift # past argument
+      shift # past value
       ;;
-    m )
-      PROMETHEUS_IP=$OPTARG
+    --prometheus-ip)
+      PROMETHEUS_IP="$2"
+      shift # past argument
+      shift # past value
       ;;
-    \? )
-      echo "Invalid option: $OPTARG" 1>&2
-      exit 1
+    --prometheus-port)
+      PROMETHEUS_PORT="$2"
+      shift # past argument
+      shift # past value
       ;;
-    : )
-      echo "Invalid option: $OPTARG requires an argument" 1>&2
+    *)    # unknown option
+      echo "Unknown option $1"
       exit 1
       ;;
   esac
 done
 
-# Default port if not provided
-SERVER_PORT=${SERVER_PORT:-8080}
-
-# Fetch EC2 IP if not provided
+# Fetch EC2 IP if server-ip not provided
 if [ -z "$SERVER_IP" ]; then
   SERVER_IP=$(fetch_ec2_ip)
   if [ -z "$SERVER_IP" ]; then
@@ -42,10 +57,19 @@ fi
 
 # Default Prometheus IP if not provided
 PROMETHEUS_IP=${PROMETHEUS_IP:-localhost}
-PROMETHEUS_PORT=${PROMETHEUS_IP:-8080}
 
-echo "Starting server with IP: $SERVER_IP on port: $SERVER_PORT and Prometheus IP: $PROMETHEUS_IP" and Prometheus port: $PROMETHEUS_PORT
+
+echo "Building Docker image $IMAGE_NAME from $DOCKERFILE_PATH"
+
+# Build the Docker image
+docker build -t "$IMAGE_NAME" "$DOCKERFILE_PATH"
+
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to build the Docker image." 1>&2
+  exit 1
+fi
+
+echo "Starting server with IP: $SERVER_IP on port: $SERVER_PORT, Prometheus IP: $PROMETHEUS_IP, and Prometheus port: $PROMETHEUS_PORT"
 
 # Run the Docker container for the server
-docker run  -e SERVER_IP="$SERVER_IP" -e SERVER_PORT="$SERVER_PORT" -e PROMETHEUS_IP="$PROMETHEUS_IP" -p "$SERVER_PORT:$SERVER_PORT" my_server_image python server.py --ip "$SERVER_IP" --port "$SERVER_PORT" --prometheus-ip "$PROMETHEUS_IP" --prometheus-port "$PROMETHEUS_PORT"
-
+docker run -e SERVER_IP="$SERVER_IP" -e SERVER_PORT="$SERVER_PORT" -e PROMETHEUS_IP="$PROMETHEUS_IP" -e PROMETHEUS_PORT="$PROMETHEUS_PORT" -p "$SERVER_PORT:$SERVER_PORT" flower-ai-monitoring-app --server-ip "$SERVER_IP" --server-port "$SERVER_PORT" --prometheus-ip "$PROMETHEUS_IP" --prometheus-port "$PROMETHEUS_PORT"

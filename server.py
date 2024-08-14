@@ -75,22 +75,18 @@ def main():
 
     # Parse command line argument `partition`
     parser = argparse.ArgumentParser(description="Flower")
-    parser.add_argument(
-        "--toy",
-        action="store_true",
-        help="Set to true to use only 10 datasamples for validation. \
-            Useful for testing purposes. Default: False",
-    )
-    parser.add_argument(
-        "--model",
-        type=str,
-        default="efficientnet",
-        choices=["efficientnet", "alexnet"],
-        help="Use either Efficientnet or Alexnet models. \
-             If you want to achieve differential privacy, please use the Alexnet model",
-    )
-    parser.add_argument('--server-ip', type=str, default=os.getenv('SERVER_IP', '127.0.0.1'), help="Server IP address")
-    parser.add_argument('--server-port', type=int, default=os.getenv('SERVER_PORT', 8080), help="Server port")
+    parser.add_argument("--toy", action="store_true",
+                        help="Set to true to use only 10 datasamples for validation. Useful for testing purposes. Default: False")
+    parser.add_argument("--model", type=str, default="efficientnet", choices=[
+                        "efficientnet", "alexnet"], help="Use either Efficientnet or Alexnet models. If you want to achieve differential privacy, please use the Alexnet model")
+    parser.add_argument('--server-ip', type=str,
+                        default=os.getenv('SERVER_IP', '127.0.0.1'), help="Server IP address")
+    parser.add_argument('--server-port', type=int,
+                        default=os.getenv('SERVER_PORT', 8080), help="Server port")
+    parser.add_argument('--prometheus-ip', type=str,
+                        default=os.getenv('SERVER_IP', '0.0.0.0'), help="Server IP address")
+    parser.add_argument('--prometheus-port', type=int,
+                        default=os.getenv('SERVER_PORT', 8000), help="Server port")
 
     args = parser.parse_args()
 
@@ -123,21 +119,22 @@ def main():
         metrics=default_metrics,
         config={"port": 8000, "url": "0.0.0.0"}
     )
-    
+
     # Wrap the base strategy with the monitoring strategy
     monitoring_strategy = GenericMonitoringStrategy(
         base_strategy, monitoring_tool_instance
     )
-    
+
     server_ip = args.server_ip
     server_port = args.server_port
-    
+
     # Start Flower server for four rounds of federated learning
     fl_server = fl.server.start_server(
         server_address=f"{server_ip}:{server_port}",
         config=fl.server.ServerConfig(num_rounds=4),
         strategy=monitoring_strategy,
     )
-    
+
+
 if __name__ == "__main__":
     main()
