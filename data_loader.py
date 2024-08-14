@@ -3,8 +3,6 @@ import torch
 from datasets import Dataset
 from torch.utils.data import DataLoader
 
-# This file needs to be implemented by the client or the enduser the source code
-
 
 class DataClientLoader():
     def __init__(self, client_id: int, toy: bool = False):
@@ -22,8 +20,6 @@ class DataClientLoader():
             testset = testset.select(range(10))
 
         return trainset, testset
-        # pass
-        # return load_alexnet(classes=10)
 
     def get_data_loaders(self, trainset, validation_split, batch_size):
         """Create and return the train and validation data loaders."""
