@@ -6,7 +6,6 @@ import os
 
 import flwr as fl
 import torch
-from flwr_datasets import FederatedDataset
 from torch.utils.data import DataLoader
 
 import utils
@@ -75,10 +74,14 @@ def main():
 
     # Parse command line argument `partition`
     parser = argparse.ArgumentParser(description="Flower")
+    parser.add_argument("--toy", action="store_true",
+                        help="Set to true to use only 10 datasamples for validation. Useful for testing purposes. Default: False")
     parser.add_argument('--server-ip', type=str,
                         default=os.getenv('SERVER_IP', '127.0.0.1'), help="Server IP address")
     parser.add_argument('--server-port', type=int,
                         default=os.getenv('SERVER_PORT', 8080), help="Server port")
+    parser.add_argument("--model", type=str, default="efficientnet", choices=[
+                        "efficientnet", "alexnet"], help="Use either Efficientnet or Alexnet models. If you want to achieve differential privacy, please use the Alexnet model")
 
     args = parser.parse_args()
 
@@ -107,8 +110,6 @@ def main():
 
     server_ip = args.server_ip
     server_port = args.server_port
-    prometheus_ip = args.prometheus_ip
-    prometheus_port = args.prometheus_port
 
     # Start Flower server for four rounds of federated learning
     monitoring_tool_instance = create_monitoring_tool(

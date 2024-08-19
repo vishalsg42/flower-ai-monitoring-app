@@ -6,7 +6,6 @@ import os
 
 import flwr as fl
 import torch
-from flwr_datasets import FederatedDataset
 from torch.utils.data import DataLoader
 
 import utils
