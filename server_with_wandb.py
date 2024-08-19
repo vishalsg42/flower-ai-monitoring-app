@@ -82,6 +82,7 @@ def main():
                         default=os.getenv('SERVER_PORT', 8080), help="Server port")
     parser.add_argument("--model", type=str, default="efficientnet", choices=[
                         "efficientnet", "alexnet"], help="Use either Efficientnet or Alexnet models. If you want to achieve differential privacy, please use the Alexnet model")
+    parser.add_argument("--project-name", type=str, default="my-awesome-project", help="Wandb project name")
 
     args = parser.parse_args()
 
@@ -110,12 +111,15 @@ def main():
 
     server_ip = args.server_ip
     server_port = args.server_port
+    wandb_project_name = args.project_name
 
     # Start Flower server for four rounds of federated learning
     monitoring_tool_instance = create_monitoring_tool(
         tool_name="wandb",
         metrics=default_metrics,
-        config=config
+        config={
+            "project": wandb_project_name,
+        }
     )
 
     # Wrap the base strategy with the monitoring strategy
