@@ -14,5 +14,8 @@ config = {
         "url": "0.0.0.0",
         "push_interval": 15  # Seconds
     },
+    "wandb": {
+        "project": "my-awesome-project",
+    }
     # Additional configurations for other tools can be added here
 }

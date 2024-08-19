@@ -3,7 +3,9 @@ from flwr.common import Parameters, EvaluateRes, FitRes, Metrics
 from typing import List, Tuple
 import time
 from .prometheus_monitoring import PrometheusMonitoring
+from .wandb_monitoring import WandBMonitoring  # Import the WandB monitoring class
 from .metrics import default_metrics
+
 
 class MonitoringStrategy(fl.server.strategy.Strategy):
     def __init__(self, base_strategy, monitoring_tool="prometheus", metrics=default_metrics, config=None):
@@ -37,6 +39,9 @@ class MonitoringStrategy(fl.server.strategy.Strategy):
         if tool == "prometheus":
             port = config.get("port", 8000)
             return PrometheusMonitoring(metrics, port=port)
+        elif tool == "wandb":
+            # Here you can define a custom monitoring class for WandB if needed
+            return WandBMonitoring(metrics)
         # Additional tools can be added here with their configurations
         else:
             raise ValueError(f"Unsupported monitoring tool: {tool}")
