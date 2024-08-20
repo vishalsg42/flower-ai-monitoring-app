@@ -118,7 +118,7 @@ class GenericMonitoringStrategy(fl.server.strategy.Strategy):
         self.monitoring.track_resource_usage()
         loss, evaluate_metrics = self.base_strategy.aggregate_evaluate(server_round, results, failures)
 
-        losses = [evaluate_res.metrics["loss"] for _, evaluate_res in results if "loss" in evaluate_res.metrics]
+        losses = [evaluate_res.loss for _, evaluate_res in results]
         if losses:
             avg_loss = sum(losses) / len(losses)
             self.monitoring.observe_metric("flower_loss", avg_loss)
