@@ -6,3 +6,4 @@ flwr-datasets==0.3.0
 ray==2.34.0
 scikit-learn==1.5.1
 GPUtil==1.4.0
+wandb==0.17.7

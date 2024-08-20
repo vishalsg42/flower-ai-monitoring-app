@@ -127,6 +127,7 @@ def main():
         base_strategy, monitoring_tool_instance
     )
 
+    print(f"Starting Flower server at {server_ip}:{server_port}")
     # Start Flower server for four rounds of federated learning
     fl_server = fl.server.start_server(
         server_address=f"{server_ip}:{server_port}",
