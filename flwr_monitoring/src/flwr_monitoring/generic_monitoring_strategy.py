@@ -82,17 +82,17 @@ class GenericMonitoringStrategy(fl.server.strategy.Strategy):
         aggregated_weights, fit_metrics = self.base_strategy.aggregate_fit(server_round, results, failures)
         communication_time = time.time() - start_communication
         self.monitoring.observe_metric("flower_communication_time_seconds", communication_time)
+        print(f"Round {server_round} - Aggregated Metrics: {fit_metrics}")
 
         accuracies = [fit_res.metrics["accuracy"] for _, fit_res in results if "accuracy" in fit_res.metrics]
         training_times = [fit_res.metrics["training_time"] for _, fit_res in results if "training_time" in fit_res.metrics]
 
+        print(f"Round {server_round} - Accuraries: {accuracies}")
         if accuracies:
-            print(accuracies)
             avg_accuracy = sum(accuracies) / len(accuracies)
             self.monitoring.observe_metric("flower_accuracy", avg_accuracy)
 
         if training_times:
-            print(training_times)
             avg_training_time = sum(training_times) / len(training_times)
             self.monitoring.observe_metric("flower_training_time_seconds", avg_training_time)
 
@@ -122,6 +122,11 @@ class GenericMonitoringStrategy(fl.server.strategy.Strategy):
         if losses:
             avg_loss = sum(losses) / len(losses)
             self.monitoring.observe_metric("flower_loss", avg_loss)
+
+        accuracies = [evaluate_res.metrics.get("accuracy") for _, evaluate_res in results if "accuracy" in evaluate_res.metrics]
+        if accuracies:
+            avg_accuracy = sum(accuracies) / len(accuracies)
+            self.monitoring.observe_metric("accuracy", avg_accuracy)  # Log accuracy to WandB
 
         # Aggregate evaluate metrics using the provided aggregation function
         aggregated_metrics = aggregate_evaluate_metrics([evaluate_res.metrics for _, evaluate_res in results])
