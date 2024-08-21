@@ -7,6 +7,7 @@ import os
 import flwr as fl
 import torch
 from torch.utils.data import DataLoader
+from model_loader import ModelLoader
 
 import utils
 from flwr_monitoring import GenericMonitoringStrategy, default_metrics, create_monitoring_tool, aggregate_fit_metrics, aggregate_evaluate_metrics
@@ -76,8 +77,6 @@ def main():
     parser = argparse.ArgumentParser(description="Flower")
     parser.add_argument("--toy", action="store_true",
                         help="Set to true to use only 10 datasamples for validation. Useful for testing purposes. Default: False")
-    parser.add_argument("--model", type=str, default="efficientnet", choices=[
-                        "efficientnet", "alexnet"], help="Use either Efficientnet or Alexnet models. If you want to achieve differential privacy, please use the Alexnet model")
     parser.add_argument('--server-ip', type=str,
                         default=os.getenv('SERVER_IP', '127.0.0.1'), help="Server IP address")
     parser.add_argument('--server-port', type=int,
@@ -89,10 +88,10 @@ def main():
 
     args = parser.parse_args()
 
-    if args.model == "alexnet":
-        model = utils.load_alexnet(classes=10)
-    else:
-        model = utils.load_efficientnet(classes=10)
+
+    # Load model using the ModelLoader
+    model_loader = ModelLoader()
+    model = model_loader.load_model()
 
     model_parameters = [val.cpu().numpy()
                         for _, val in model.state_dict().items()]

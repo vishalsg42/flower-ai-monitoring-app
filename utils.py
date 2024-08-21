@@ -13,6 +13,7 @@ def load_partition(partition_id, toy: bool = False):
     print(f"Loading partition {partition_id}...")
     fds = FederatedDataset(dataset="cifar10", partitioners={"train": 10})
     partition = fds.load_partition(partition_id)
+    print("Partition loaded.")
     # Divide data on each node: 80% train, 20% test
     partition_train_test = partition.train_test_split(test_size=0.2, seed=42)
     partition_train_test = partition_train_test.with_transform(apply_transforms)

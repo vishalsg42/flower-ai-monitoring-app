@@ -28,7 +28,8 @@ class CifarClient(fl.client.NumPyClient):
         self.model_loader = model_loader
         self.validation_split = validation_split
         self.model = self.model_loader.load_model()
-        self.trainset, self.testset = self.data_loader.load_data()
+        self.trainset = self.data_loader.trainset
+        self.testset = self.data_loader.testset
 
     def set_parameters(self, parameters):
         """Loads a alexnet or efficientnet model and replaces it parameters with the
@@ -147,7 +148,7 @@ def main() -> None:
     print(f"Client {args.client_id} loaded data partition")
 
     # Load model using the ModelLoader
-    model_loader = ModelLoader(model_str=args.model)
+    model_loader = ModelLoader()
 
     server_ip = args.server_ip
     server_port = args.server_port
