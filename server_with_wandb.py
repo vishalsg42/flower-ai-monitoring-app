@@ -7,6 +7,7 @@ import os
 import flwr as fl
 import torch
 from torch.utils.data import DataLoader
+from model_loader import ModelLoader
 
 import utils
 from flwr_monitoring import GenericMonitoringStrategy, default_metrics, create_monitoring_tool, aggregate_fit_metrics, aggregate_evaluate_metrics, config
@@ -84,12 +85,16 @@ def main():
                         "efficientnet", "alexnet"], help="Use either Efficientnet or Alexnet models. If you want to achieve differential privacy, please use the Alexnet model")
     parser.add_argument("--project-name", type=str, default="my-awesome-project", help="Wandb project name")
 
+
     args = parser.parse_args()
 
-    if args.model == "alexnet":
-        model = utils.load_alexnet(classes=10)
-    else:
-        model = utils.load_efficientnet(classes=10)
+    # Load model using the ModelLoader
+    model_loader = ModelLoader()
+    model = model_loader.load_model()
+
+    # Check if the model is None
+    if model is None:
+        raise ValueError("ModelLoader returned None. Ensure that load_model() returns a valid model instance.")
 
     model_parameters = [val.cpu().numpy()
                         for _, val in model.state_dict().items()]

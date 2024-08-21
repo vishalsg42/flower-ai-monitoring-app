@@ -93,6 +93,10 @@ def main():
     model_loader = ModelLoader()
     model = model_loader.load_model()
 
+    # Check if the model is None
+    if model is None:
+        raise ValueError("ModelLoader returned None. Ensure that load_model() returns a valid model instance.")
+
     model_parameters = [val.cpu().numpy()
                         for _, val in model.state_dict().items()]
 

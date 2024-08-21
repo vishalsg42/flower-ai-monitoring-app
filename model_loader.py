@@ -1,5 +1,7 @@
 import utils
 import torch.nn as nn
+from flwr_monitoring.model import Net
+import torch
 
 
 class ModelLoader:
@@ -8,4 +10,7 @@ class ModelLoader:
 
     def load_model(self) -> nn.Module:
         """Load and return the specified model."""
-        return utils.load_efficientnet(classes=self.num_classes)
+        DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model = Net().to(DEVICE)
+        return model
+        # return utils.load_efficientnet(classes=self.num_classes)

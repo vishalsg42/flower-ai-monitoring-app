@@ -21,7 +21,7 @@ def load_partition(partition_id, toy: bool = False):
 
 
 def load_centralized_data():
-    fds = FederatedDataset(dataset="cifar10", partitioners={"train": 10})
+    fds = FederatedDataset(dataset="uoft-cs/cifar10", partitioners={"train": 10})
     centralized_data = fds.load_split("test")
     centralized_data = centralized_data.with_transform(apply_transforms)
     return centralized_data
@@ -29,14 +29,15 @@ def load_centralized_data():
 
 def apply_transforms(batch):
     """Apply transforms to the partition from FederatedDataset."""
-    pytorch_transforms = Compose(
-        [
-            Resize(256),
-            CenterCrop(224),
-            ToTensor(),
-            Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ]
-    )
+    # pytorch_transforms = Compose(
+    #     [
+    #         Resize(256),
+    #         CenterCrop(224),
+    #         ToTensor(),
+    #         Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    #     ]
+    # )
+    pytorch_transforms = Compose([ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
     batch["img"] = [pytorch_transforms(img) for img in batch["img"]]
     return batch
 

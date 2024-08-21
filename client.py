@@ -1,6 +1,7 @@
 import argparse
 import warnings
 from collections import OrderedDict
+import time  # Import the time module
 
 # import datasets
 import os
@@ -43,8 +44,12 @@ class CifarClient(fl.client.NumPyClient):
         """Train parameters on the locally held training set."""
         print("Fitting model on client side ...")
 
+        # Record the start time for the round
+        round_start_time = time.time()
+
         # Update local model parameters
         self.set_parameters(parameters)
+
 
         # Get hyperparameters for this round
         batch_size: int = config["batch_size"]
@@ -60,12 +65,20 @@ class CifarClient(fl.client.NumPyClient):
         parameters_prime = utils.get_model_params(self.model)
         num_examples_train = len(self.trainset)
 
+        # Calculate the round time
+        round_end_time = time.time()
+        round_time = round_end_time - round_start_time
+        print(f"Round time: {round_time:.2f} seconds")
+
         return parameters_prime, num_examples_train, results
 
     def evaluate(self, parameters, config):
         """Evaluate parameters on the locally held test set."""
 
         print("Evaluating model on client side ...")
+        # Record the start time for the evaluation round
+        round_start_time = time.time()
+
         # Update local model parameters
         self.set_parameters(parameters)
 
@@ -78,10 +91,19 @@ class CifarClient(fl.client.NumPyClient):
 
         loss, accuracy = utils.test(
             self.model, test_loader, steps, self.device)
+
+        # Calculate the round time
+        round_end_time = time.time()
+        round_time = round_end_time - round_start_time
+        print(f"Evaluation round time: {round_time:.2f} seconds")
+
         return float(loss), len(self.testset), {"accuracy": float(accuracy)}
 
 
 def main() -> None:
+    # Start time of the entire script
+    start_time = time.time()
+
     # Parse command line argument `partition`
     parser = argparse.ArgumentParser(description="Flower")
     parser.add_argument(
@@ -156,6 +178,12 @@ def main() -> None:
     client = CifarClient(data_loader, model_loader, device).to_client()
     fl.client.start_client(
         server_address=f"{server_ip}:{server_port}", client=client)
+
+    # End time of the entire script
+    end_time = time.time()
+    total_time = end_time - start_time
+    print(f"Total execution time: {total_time:.2f} seconds")
+
 
 
 if __name__ == "__main__":
